@@ -2,17 +2,23 @@ import { useState, useEffect } from "react";
 
 function StarshipsListItem(props) {
   const { starship } = props;
+  const length = starship.pilots ? starship.pilots.length : 0
+  const [pilots, setPilots] = useState([])
 
-  const [firstPilot, setFirstPilot] = useState('')
+  const multiFetch = (urlArray,i) => {
+    if (i >= length-1) return;
+    i++
+    fetch(starship.pilots[i])
+    .then(res => res.json())
+    .then(res => setPilots(pilots => [...pilots, res]))
+    .then(() => multiFetch(urlArray,i))
+  }
 
-  useEffect(()=>starship.pilots[0] && fetch(starship.pilots[0])
-                            .then(res => res.json())
-                            .then(res => setFirstPilot(res.name))
-                            ,[starship])
+    useEffect(() => starship && multiFetch(starship.pilots,-1),[starship])
 
   console.log({ starship });
 
-  return <li>{starship.name} - First Pilot: {firstPilot?firstPilot:"no pilots"}</li>;
+  return <li>{starship.name} - Pilots: {length>0?pilots.reduce((a,b)=>a+` , ${b.name}`,""):"no pilots"}</li>;
 }
 
 export default StarshipsListItem;
